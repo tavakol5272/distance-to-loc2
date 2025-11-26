@@ -14,7 +14,7 @@ shinyModuleUserInterface <- function(id, label = NULL) {
     titlePanel("Distance to Location over Time"),
     
     sidebarLayout(
-      sidebarPanel(width = 4,
+      sidebarPanel(width = 3,
                    
                    h4("Animals"),
                    checkboxGroupInput(ns("animals"), NULL, choices = NULL),
@@ -134,10 +134,10 @@ shinyModule <- function(input, output, session, data) {
     
     ## time axis
     timestamp_range <- range(df$timestamp)
-    #+++time_seq  <- seq(timestamp_range[1], timestamp_range[2], length.out = 30)
-    #+++time_diff <- difftime(time_seq[2], time_seq[1])
-    #+++timestamp_unit30 <- attr(time_diff, "units")
-    #+++timestamp_labs   <- round(time_seq, units = timestamp_unit30)
+    #time_seq  <- seq(timestamp_range[1], timestamp_range[2], length.out = 30)
+    #time_diff <- difftime(time_seq[2], time_seq[1])
+    #timestamp_unit30 <- attr(time_diff, "units")
+    #timestamp_labs   <- round(time_seq, units = timestamp_unit30)
     
     ## distance range
     dist_range <- range(df$distance_to_location_m, na.rm = TRUE)
@@ -147,7 +147,7 @@ shinyModule <- function(input, output, session, data) {
     indiv_names <- namen()
     indiv_cols  <- cols()
     
-    par(mar = c(12, 8, 4, 2) + 0.1, font.lab = 2)
+    par(mar = c(12, 2, 6, 2) + 0.1, font.lab = 2 )
     plot(
       x = timestamp_range,
       y = dist_range,
@@ -164,8 +164,15 @@ shinyModule <- function(input, output, session, data) {
     #axis(side = 1, at = as.POSIXct(timestamp_labs), lab  = as.character(timestamp_labs),las  = 2  )
     ##+++++++++++++++++++++
     time_breaks <- pretty(df$timestamp, n = 30)
-    axis( side = 1, at = time_breaks, labels = format(time_breaks, "%Y-%m-%d--%H:%M:%S"), las= 2 )
-    #+++++++++++++++
+    step_unit <- attr(difftime(time_breaks[2], time_breaks[1]),  "units") 
+    
+    ## choose format based on unit
+    if (step_unit %in% c("secs", "mins", "hours")) {
+      time_fmt <- "%Y-%m-%d_%H:%M:%S"
+    } else { time_fmt <- "%Y-%m-%d" }
+    
+    axis( side = 1, at = time_breaks, labels = format(time_breaks, time_fmt), las= 2 )
+  
     mtext("time", side = 1, line = 10, font = 2)
     
     title("Distance to reference location over time")
@@ -175,7 +182,7 @@ shinyModule <- function(input, output, session, data) {
       dfi <- df_split[[indiv_names[i]]]
       lines(x = dfi$timestamp,y   = dfi$distance_to_location_m, col = indiv_cols[i], lwd = 2) }
     
-    legend("topright",legend = indiv_names, col = indiv_cols, lwd    = 2, bty= "O")
+    legend("topright",legend = indiv_names, col = indiv_cols, lwd = 2, bty= "n")
     
     # store plot
     sv_plot(recordPlot())
@@ -210,8 +217,3 @@ shinyModule <- function(input, output, session, data) {
 
 
 
-#### for checking the output file ######
-# res <- readRDS("./data/output/output.rds")
-# names(res)
-# 
-# head(as.data.frame(res)[, ], 10)
