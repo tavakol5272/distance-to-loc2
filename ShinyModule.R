@@ -153,7 +153,8 @@ shinyModule <- function(input, output, session, data) {
       y = dist_range,
       type = "n",   
       xlim = timestamp_range,
-      ylim = dist_range,
+      #ylim = dist_range,
+      ylim = c(dist_range[1], dist_range[2] + ( 0.2 * diff(dist_range))),
       xlab = "",
       ylab = "Distance to reference location (m)",
       axes = FALSE  )
