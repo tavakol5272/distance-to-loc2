@@ -16,7 +16,7 @@ shinyModuleUserInterface <- function(id, label = NULL) {
     sidebarLayout(
       sidebarPanel(width = 3,
                    
-                   h4("Animals"),
+                   h4("Tracks"),
                    checkboxGroupInput(ns("animals"), NULL, choices = NULL),
                    fluidRow(
                      column(6, actionButton(ns("select_all_animals"), "Select All", class = "btn-sm")),
