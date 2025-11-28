@@ -99,7 +99,8 @@ shinyModule <- function(input, output, session, data) {
     data_split <- split(dat, dat[[trk_col]])
     
     foreach(datai = data_split, .combine = rbind) %do% {
-      idi   <- rep(unique(as.character(datai[[trk_col]])), nrow(datai))
+      track_id <- as.character(mt_track_id(datai))
+      
       cooi  <- sf::st_coordinates(datai)
       timei <- mt_time(datai)
       disti <- geosphere::distVincentyEllipsoid(
@@ -108,19 +109,22 @@ shinyModule <- function(input, output, session, data) {
       )
       
       data.frame(
-        individual_local_identifier = idi,
+        track_id = track_id,
         timestamp = timei,
         location_long = cooi[, 1],
         location_lat = cooi[, 2],
         distance_to_location_m = disti
       )
     }
+    
   })
   
   ##Names
   namen <- reactive({
     df <- dist_table()
-    unique(as.character(df$individual_local_identifier))  })
+    unique(as.character(df$track_id))
+  })
+  
   
   ##Colors
   cols <- reactive({grDevices::hcl.colors(length(namen()), palette = "Viridis")  })
@@ -134,20 +138,17 @@ shinyModule <- function(input, output, session, data) {
     
     ## time axis
     timestamp_range <- range(df$timestamp)
-    #time_seq  <- seq(timestamp_range[1], timestamp_range[2], length.out = 30)
-    #time_diff <- difftime(time_seq[2], time_seq[1])
-    #timestamp_unit30 <- attr(time_diff, "units")
-    #timestamp_labs   <- round(time_seq, units = timestamp_unit30)
-    
+   
     ## distance range
     dist_range <- range(df$distance_to_location_m, na.rm = TRUE)
     
-    ## split by individual
-    df_split <- split(df, df$individual_local_identifier)
+    ## split by tracks
+    df_split <- split(df, df$track_id)
+    
     indiv_names <- namen()
     indiv_cols  <- cols()
     
-    par(mar = c(12, 2, 6, 2) + 0.1, font.lab = 2 )
+    par(mar = c(12, 4, 6, 2) + 0.1, font.lab = 2 )
     plot(
       x = timestamp_range,
       y = dist_range,
@@ -162,7 +163,6 @@ shinyModule <- function(input, output, session, data) {
     abline(h   = pretty(dist_range, n = 6),  col = "grey90",  lty = "dotted"  )
     box()
     axis(2)
-    #axis(side = 1, at = as.POSIXct(timestamp_labs), lab  = as.character(timestamp_labs),las  = 2  )
     ##+++++++++++++++++++++
     time_breaks <- pretty(df$timestamp, n = 30)
     step_unit <- attr(difftime(time_breaks[2], time_breaks[1]),  "units") 
